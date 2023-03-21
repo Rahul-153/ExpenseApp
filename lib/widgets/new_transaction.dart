@@ -1,5 +1,4 @@
-import 'dart:ffi';
-
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 
 class NewTransaction extends StatefulWidget {
@@ -15,14 +14,31 @@ class _NewTransactionState extends State<NewTransaction> {
   final titleController = TextEditingController();
 
   final amountController = TextEditingController();
+  DateTime? _selectedDate=null;
 
-  void SubmitData() {
+  Future<DateTime?> _presentDate() {
+    return showDatePicker(
+        context: context,
+        initialDate: DateTime.now(),
+        firstDate: DateTime(2023),
+        lastDate: DateTime.now()).then((pickedDate){
+          if(pickedDate==null){
+            return;
+          }
+          setState(() {
+            _selectedDate=pickedDate;
+          });
+        }
+        );
+  }
+
+  void _submitData() {
     final txtEntered = titleController.text;
     final amountEntered = double.parse(amountController.text);
-    if (txtEntered == "" || amountEntered <= 0) {
+    if (txtEntered == "" || amountEntered <= 0 || _selectedDate==null) {
       return;
     }
-    widget.addTxn(txtEntered, amountEntered);
+    widget.addTxn(txtEntered, amountEntered,_selectedDate);
 
     Navigator.of(context).pop();
   }
@@ -39,19 +55,34 @@ class _NewTransactionState extends State<NewTransaction> {
             TextField(
                 controller: titleController,
                 decoration: InputDecoration(labelText: "Title"),
-                onSubmitted: (_) => SubmitData()),
+                onSubmitted: (_) => _submitData()),
             TextField(
               controller: amountController,
               decoration: InputDecoration(labelText: "Amount"),
               keyboardType: TextInputType.number,
-              onSubmitted: (_) => SubmitData(),
+              onSubmitted: (_) => _submitData(),
             ),
-            TextButton(
+            Container(
+              height: 50,
+              child: Row(
+                children: <Widget>[
+                  _selectedDate==null?Text('No date chosen'):Text(DateFormat.yMMMd().format(_selectedDate!) as String),
+                  TextButton(
+                      onPressed: _presentDate,
+                      child: Text(
+                        'Choose Date',
+                        style: Theme.of(context).textTheme.labelSmall,
+                      ))
+                ],
+              ),
+            ),
+            ElevatedButton(
               child: Text(
                 "Add Transaction",
-                style: TextStyle(color: Colors.purple),
+                style:
+                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               ),
-              onPressed: () => SubmitData(),
+              onPressed: () => _submitData(),
             )
           ],
         ),

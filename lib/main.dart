@@ -1,3 +1,4 @@
+import './widgets/chart.dart';
 import 'package:expense_app/widgets/transaction_list.dart';
 
 import './models/transaction.dart';
@@ -18,7 +19,14 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
           primarySwatch: Colors.purple,
           fontFamily: 'Quicksand',
+
           textTheme: TextTheme(
+            labelSmall: TextStyle(
+              color: Colors.purple,
+              fontFamily: 'OpenSans',
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold
+            ),
               displaySmall: TextStyle(
                   fontFamily: 'OpenSans',
                   fontSize: 18,
@@ -56,15 +64,30 @@ class _MyHomePageState extends State<MyHomePage> {
     // Transaction(amount: 10, date: DateTime.now(), id: "t3", title: "utensils"),
     // Transaction(amount: 5, date: DateTime.now(), id: "t4", title: "Snacks"),
   ];
+  List<Transaction> get _recentTransactions {
+    return _userTransactions.where((tx) {
+      return tx.date.isAfter(DateTime.now().subtract(
+        Duration(days: 7),
+      ));
+    }).toList();
+  }
 
-  void _addTransaction(String txnTtile, double txnAmount) {
+  void _addTransaction(String txnTtile, double txnAmount,DateTime dt) {
     final newtxn = Transaction(
         amount: txnAmount,
-        date: DateTime.now(),
+        date: dt,
         id: DateTime.now().toString(),
         title: txnTtile);
     setState(() {
       _userTransactions.add(newtxn);
+    });
+  }
+
+  void _deleteTransaction(String id){
+    setState(() {
+      _userTransactions.removeWhere((tx){
+        return tx.id==id;
+      });
     });
   }
 
@@ -99,13 +122,8 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           // mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-            Container(
-              width: double.infinity,
-              child: const Card(
-                child: Text("Chart"),
-              ),
-            ),
-            TransactionList(_userTransactions),
+            Chart(_recentTransactions),
+            TransactionList(_userTransactions,_deleteTransaction),
           ],
         ),
       ),
